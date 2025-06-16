@@ -176,3 +176,4 @@ cython_debug/
 # Datos
 *.csv
 *.xlsx
+*.parquet
