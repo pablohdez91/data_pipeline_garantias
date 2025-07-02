@@ -31,9 +31,8 @@ IIF(B.Estatus ='Recuperada',
         IIF(A.Interes_Mn is null,0,A.Interes_Mn)+
             IIF(A.Moratorios_Mn is null,0,A.Moratorios_Mn)+
                 IIF(A.Excedente_Mn is null,0,A.Excedente_Mn)-
-                    IIF(A.[Gastos_Juicio_Mn] is null,
-    0,
-        A.[Gastos_Juicio_Mn]))/1000000,0) AS [MRECUP_TOT(MDP)], 
+                    IIF(A.[Gastos_Juicio_Mn] is null,0,A.[Gastos_Juicio_Mn]))
+                    /1000000,0) AS [MRECUP_TOT(MDP)], 
 IIF(B.Estatus ='Rescatada',(IIF(A.Monto_Mn is null,0,A.Monto_Mn)+IIF(A.Interes_Mn is null,0,A.Interes_Mn)+IIF(A.Moratorios_Mn is null,0,A.Moratorios_Mn)+IIF(A.Excedente_Mn is null,0,A.Excedente_Mn)-IIF(A.[Gastos_Juicio_Mn] is null,0,A.[Gastos_Juicio_Mn]))/1000000,0) AS [MRESCAT_TOT(MDP)], 
 (YEAR(A.FECHA)-YEAR(A.Fecha_Garantia_Honrada))*12+(MONTH(A.FECHA)-MONTH(A.Fecha_Garantia_Honrada)) AS DIFERENCIAS_MESES, 
 (YEAR(A.Fecha_Garantia_Honrada)) AS ANIO_PAGO, 
@@ -67,6 +66,7 @@ GROUP BY Numero_Credito, [Razón Social (Intermediario)], CONCATENAR_SALDOS);
 -- Parte 2
 -- Cruza_CiclosRescate
 SELECT A.*, B.CICLOS_RESCAT INTO [CURVA_RECUP_202504] FROM [RECUP_PREVIO_202504] as A LEFT JOIN [CICLOS_RESCATE] as B ON A.CONCATENAR_SALDOS = B.CONCATENAR_SALDOS; 
+
 
 -- AgrupaRecup
 SELECT IND_ENTRA, MM_UDIS, Producto AS TAXONOMIA, NR_R, LLAVE_FINAL, TPRO_CLAVE, [Razón Social (Intermediario)] AS BANCO, CSG, CSF, AGRUPAMIENTO, AGRUPAMIENTO_ID, Intermediario_Id, CICLOS_RESCAT, DIFERENCIAS_MESES, Tipo_Garantia_Id AS TIPGAR_CLAVE, ANIO_PAGO AS [ANIO(PAGO)], REEST, YEAR(Fecha_Registro) as Anio_REG_RECUP,  ESQUEMA, ORDEN_PAGO, SUM([MRECUP_TOT(MDP)]) AS MRECUP_TOT, SUM([MRESCAT_TOT(MDP)]) AS MRESCAT_TOT INTO [RECUP_AGRUP_202504_inter] FROM [CURVA_RECUP_202504] GROUP BY IND_ENTRA, MM_UDIS, PRODUCTO, NR_R, LLAVE_FINAL, TPRO_CLAVE, [Razón Social (Intermediario)], CSG, CSF, AGRUPAMIENTO, AGRUPAMIENTO_ID, Intermediario_Id, CICLOS_RESCAT, DIFERENCIAS_MESES, Tipo_Garantia_Id, ANIO_PAGO, REEST, YEAR(Fecha_Registro),  ESQUEMA, ORDEN_PAGO ;
