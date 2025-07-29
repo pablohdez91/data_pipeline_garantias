@@ -35,5 +35,15 @@ Sub BuscaMaxFechaApertura()
 End Sub
 
 
+Function Crea_Tabla_Agrega_Campos_Cruzada(dbs, linea_1, Coma, TablaInicial_1, TablaInicial_2, TablaFinal, Campos_Extra, BaseOrigen, Filtro, Agrupado_por)
+    dbs.Execute "select " & linea_1 & Coma & " " _
+        & "" & Campos_Extra & " " _
+        & "into [" & TablaFinal & "] " _
+        & "from [" & TablaInicial_1 & "] as A left join [" & TablaInicial_2 & "] as B " _
+        & "" & BaseOrigen & " " _
+        & "" & Filtro & " " _
+        & "" & Agrupado_por & ";"
+End Function
+
 
 

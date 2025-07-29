@@ -133,6 +133,8 @@ Sub Principal_Foto()
 End Sub
 
 
+
+
 Sub Exporta_Saldos(wd_fotos, db_acumulado_saldos, Mes, tbl_saldos)
     'Pregunta si existen archivos, si si hace la exportacion, si no ent manda msg de que aun no lo ha hecho xq falta algun archivo sale
     If ExisteRuta(wd_fotos & "\Simples_" & Mes & ".accdb") = False Or ExisteRuta(wd_fotos & "\Revolventes_" & Mes & ".accdb") = False Then
@@ -181,4 +183,112 @@ End Sub
     Mes_Letra = Left(Mes_Letra, 3)
  End Function
  
+Sub Une_Pagadas(Var_NR_R, Mes, BaseOrigen, FotoFinal, Pagos_VF, T_Pagadas)
+    Dim dbs As DAO.database
+    Set dbs = OpenDatabase(BaseOrigen)
+    dbs.Execute "SELECT A.*, (IIF(B.[Monto_Desembolso_Mn] is NULL, 0,B.[Monto_Desembolso_Mn])+IIF(B.[Interes_Desembolso_Mn] is NULL, 0,B.[Interes_Desembolso_Mn])+IIF(B.[Interes_Moratorios_Mn] is NULL, 0,B.[Interes_Moratorios_Mn]))/1000000 as [MPAGADO (MDP)], " _
+        & "IIF((IIF(B.[Monto_Desembolso_Mn] is NULL, 0,B.[Monto_Desembolso_Mn])+IIF(B.[Interes_Desembolso_Mn] is NULL, 0,B.[Interes_Desembolso_Mn])+IIF(B.[Interes_Moratorios_Mn] is NULL, 0,B.[Interes_Moratorios_Mn]))>0,1,0) as PAGADAS, " _
+        & "IIF((IIF(B.[Monto_Desembolso_Mn] is NULL, 0,B.[Monto_Desembolso_Mn])+IIF(B.[Interes_Desembolso_Mn] is NULL, 0,B.[Interes_Desembolso_Mn])+IIF(B.[Interes_Moratorios_Mn] is NULL, 0,B.[Interes_Moratorios_Mn]))>0,1,0) as INCUMPLIDO, " _
+        & "IIF(B.[Fecha_Garantia_Honrada] is NULL,cdate(Format('30/12/1899','dd/mm/yyyy')), B.[Fecha_Garantia_Honrada]) as FECHA_PAGO " _
+        & "INTO [" & FotoFinal & "] " _
+        & "FROM [" & Pagos_VF & "] A LEFT JOIN [" & T_Pagadas & "] B " _
+        & "on (cstr(A.Intermediario_Id)=cstr(B.Intermediario_Id) AND A.Numero_Credito=B.Numero_Credito) " _
+        & "IN '" & BaseOrigen & "'; "
+    dbs.Close
+End Sub
 
+Function Borrar_Tabla_BO(BaseOrigen, Tabla)
+    Set dbs = OpenDatabase(BaseOrigen)
+    dbs.Execute "DROP TABLE [" & Tabla & "] ;"
+    dbs.Close
+End Function
+
+Function RenombraTablas(RutaBaseDatosOrigen, TablaOrigen, TablaNueva)
+     Dim objetAccessO As Access.Application
+     Set objetAccessO = New Access.Application
+     objetAccessO.OpenCurrentDatabase RutaBaseDatosOrigen
+     objetAccessO.DoCmd.Rename TablaNueva, acTable, TablaOrigen
+     objetAccessO.Quit
+     Set objetAccessO = Nothing
+End Function
+
+Function Z3_RECUPCOHORTES_NR(Var_NR_R, Mes, BaseOrigen, Linea, TRO, TablaZ3, Foto, RecuperacionesVF)
+    Dim dbs As database
+    ' Z3_RECUPCOHORTES_NR Var_NR_R, Mes, db_simples_revolventes, Linea, tbl_recuperadas_global_vf, tbl_z3_recup_cohor, tbl_bd_dwh, tbl_vf_recuperaciones 
+    TRO_Temp = TRO & "_Origen_Temp"
+    Set dbs = OpenDatabase(BaseOrigen)
+    dbs.Execute "SELECT N.*, N.Numero_Credito & N.Intermediario_Id as Concatenado " _
+        & "into [" & TRO_Temp & "] " _
+        & "FROM [" & TRO & "] as N " _
+        & "IN '" & BaseOrigen & "'; "
+   
+    dbs.Execute "SELECT " & Linea & ", " _
+        & "IIF (A.Fecha > IIF(B.[FECHA_PAGO] IS NULL,cdate(Format('30/12/1899','dd/mm/yyyy')),B.[FECHA_PAGO]), 1, 0) AS ENTRA_RECUP, " _
+        & "IIF ((A.Fecha > IIF(B.[FECHA_PAGO] IS NULL,cdate(Format('30/12/1899','dd/mm/yyyy')),B.[FECHA_PAGO]) AND (A.Estatus='D' or A.Estatus='E' or A.Estatus='RI' or A.Estatus='CR' or A.Estatus='RAR' or A.Estatus='RAC' or A.Estatus='CJ' or A.Estatus='CS' or A.Estatus='R' or A.Estatus='RJ' or A.Estatus='RS')), (nz(A.Monto_Mn ,0)+nz(A.Interes_Mn,0)+nz(A.Moratorios_Mn,0)+nz(A.Excedente_Mn,0)-nz(A.[Gastos_Juicio_Mn],0))/1000000, 0) AS [MONTOTOTAL (MDP)]," _
+        & "IIF ((A.Fecha > IIF(B.[FECHA_PAGO] IS NULL,cdate(Format('30/12/1899','dd/mm/yyyy')),B.[FECHA_PAGO]) AND (A.Estatus='D' or A.Estatus='E' or A.Estatus='RI' or A.Estatus='CR' or A.Estatus='RAR' or A.Estatus='RAC')), (nz(A.Monto_Mn,0)+nz(A.Interes_Mn,0)+nz(A.Moratorios_Mn,0)+nz(A.Excedente_Mn,0)-nz(A.[Gastos_Juicio_Mn],0))/1000000,0) AS [RECUPERADOS (MDP)], " _
+        & "IIF ((A.Fecha > IIF(B.[FECHA_PAGO] IS NULL,cdate(Format('30/12/1899','dd/mm/yyyy')),B.[FECHA_PAGO]) AND (A.Estatus='CJ' or A.Estatus='CS' or A.Estatus='R' or A.Estatus='RJ' or A.Estatus='RS')), (nz(A.Monto_Mn,0)+nz(A.Interes_Mn,0)+nz(A.Moratorios_Mn,0)+nz(A.Excedente_Mn,0)-nz(A.[Gastos_Juicio_Mn],0))/1000000,0) AS [RESCATADOS (MDP)] " _
+        & "INTO [" & TablaZ3 & "] " _
+        & "FROM [" & TRO_Temp & "] as A LEFT JOIN (SELECT M.*,  M.[Numero_Credito] & M.Intermediario_Id as Concatenado2 FROM [" & Foto & "] M) as B " _
+        & "on (A.Concatenado=B.Concatenado2) " _
+        & "IN '" & BaseOrigen & "'; "
+    Borrar_Tabla dbs, TRO_Temp
+    dbs.Close
+End Function
+
+Function Paso2(BaseOrigen, Linea, TablaZ3, RecuperacionesVF)
+Dim dbs As database
+Set dbs = OpenDatabase(BaseOrigen)
+dbs.Execute "SELECT " & Linea & ", " _
+    & "SUM([A.MONTOTOTAL (MDP)]) AS [MONTOTOTAL (MDP)], " _
+    & "SUM([A.RECUPERADOS (MDP)]) AS [RECUPERADOS (MDP)], " _
+    & "SUM([A.RESCATADOS (MDP)]) AS [RESCATADOS (MDP)] " _
+    & "into [" & RecuperacionesVF & "] " _
+    & "FROM [" & TablaZ3 & "] as A " _
+    & "IN '" & BaseOrigen & "' " _
+    & "GROUP BY " & Linea & " " _
+    & "ORDER BY " & Linea & "; "
+dbs.Close
+End Function
+
+Function Foto_Saldo(BaseOrigen, Saldos_mes_Inicial, Saldos_mes_Final, Mes, Var_NR_R)  ', Filtro, Katalogo_UDI, Katalogo_Programa, Katalogo_Agrupamiento
+    Dim dbs As DAO.database
+    Set dbs = OpenDatabase(BaseOrigen)
+    dbs.Execute "SELECT  A.BUCKET, A.CAMBIO, A.[Monto _Credito_Mn]*A.CAMBIO AS MCrédito_MM_UDIS, A.[MM_UDIS], " _
+        & "A.[Intermediario_Id] as INTER_CLAVE, A.Nombre_v1 as NOMBRE, A.[RFC Empresa / Acreditado] as RFC, A.[TIPO_PERSONA] as TIPO_PERSONA, A.[Numero_Credito] as CLAVE_CREDITO, " _
+        & "A.[Fecha de Apertura] as FECHA_VALOR, IIF(A.[Plazo Días] IS NULL,0,A.[Plazo Días]) as PLAZO_DIAS, A.[Plazo] as PLAZO, A.[FVTO_Riesgosd] as FVTO, A.[Fecha Registro Alta] as FECHA_REGISTRO_GARANTIA, " _
+        & "A.[Monto_Garantizado_Mn]/1000000 as [MGI (MDP)], A.[Porcentaje Garantizado] as PORCENTAJE_GARANTIZADO, A.[Razón Social (Intermediario)] as BANCO, IIF(A.[Fecha_Primer_Incumplimiento] IS NULL,cdate(Format('30/12/1899','dd/mm/yyyy')),A.[Fecha_Primer_Incumplimiento]) as FECHA_PRIMER_INCUM, " _
+        & "A.[Monto _Credito_Mn]/1000000 as [MONTO CREDITO (MDP)], A.[Saldo_Contingente_Mn]/1000000 as [SALDO (MDP)], A.[TPRO_CLAVE] as TPRO_CLAVE, " _
+        & "A.[Producto ID] as CLAVE_TAXO, A.[Producto] as TAXONOMIA, A.[NR_R], " _
+        & "IIF(A.[Fecha de Apertura]=0,NULL, cdate(Format(dateserial(Year(A.[Fecha de Apertura]),Month(A.[Fecha de Apertura]),'01'),'dd/mm/yyyy'))) AS FECHA_VALOR1, " _
+        & "IIF(A.[Fecha Registro Alta]=0,NULL, cdate(Format(dateserial(Year(A.[Fecha Registro Alta]),Month(A.[Fecha Registro Alta]),'01'),'dd/mm/yyyy'))) AS FECHA_REGISTRO1, " _
+        & "IIF(A.[Numero_Credito] is NULL, 0,1) AS NUM_GAR, A.[CSG], " _
+        & "IIF(Plazo<=12,1,IIF(Plazo<=24,2,IIF(Plazo<=36,3,4))) AS PLAZO_BUCKET, A.[MPAGADO (MDP)], A.PAGADAS, A.INCUMPLIDO, A.FECHA_PAGO, " _
+        & "A.[Programa_Original] as Programa_Original, A.[Programa_Id] as Programa_Id, A.[Estrato_Id] as Estrato_Id, A.[Sector_Id] as Sector_Id, A.[Estado_Id] as Estado_Id, A.[Tipo_Credito_Id] as Tipo_Credito_Id, A.[Porcentaje de Comisión Garantia] as Porcentaje_Comision_Garantia, " _
+        & "A.[Tasa_Id] as Tasa_Id, A.[Valor_Tasa_Interes] as [Tasa_Interes],  A.[Monto_Garantizado_Mn_Original]/1000000 as [MGI (MDP) Original], A.[AGRUPAMIENTO_ID], " _
+        & "A.ESQUEMA, A.SUBESQUEMA, A.AGRUPAMIENTO, A.FONDOS_CONTRAGARANTIA, A.CONREC_CLAVE, A.Describe_Desrec " _
+        & "INTO " & Saldos_mes_Final & "  " _
+        & "FROM [" & Saldos_mes_Inicial & "] A " _
+        & " ;"
+End Function
+
+Sub Une_Pagos_Vs_Recup(Var_NR_R, Mes, BaseOrigen, FotoFinal, Pagos_VF, Recuperaciones, Filtro, BaseDestino)
+    Dim dbs As DAO.database
+    Set dbs = OpenDatabase(BaseDestino)
+    dbs.Execute "SELECT A.*, B.[MONTOTOTAL (MDP)], B.[RECUPERADOS (MDP)], B.[RESCATADOS (MDP)] " _
+              & "INTO [" & FotoFinal & "] " _
+              & "FROM " & Pagos_VF & " AS A LEFT JOIN " & Recuperaciones & " AS B " _
+              & " ON (cstr(A.INTER_CLAVE)=cstr(B.Intermediario_Id) AND A.CLAVE_CREDITO=B.Numero_Credito) " _
+              & " IN '" & BaseOrigen & "' " _
+              & " " & Filtro & " ;"
+    dbs.Close
+End Sub
+
+Function Genera_BaseSaldos(BaseOrigen, Mes, FotoFinal, SaldoFinal)
+Dim dbs As DAO.database
+Set dbs = OpenDatabase(BaseOrigen)
+dbs.Execute "SELECT A.BUCKET, A.INTER_CLAVE, A.CLAVE_CREDITO, A.BANCO, A.[SALDO (MDP)] AS SALDO_MDP, A.CLAVE_CREDITO & A.INTER_CLAVE AS CONCATENAR_SALDOS " _
+          & "INTO [" & SaldoFinal & "] " _
+          & "FROM [" & FotoFinal & "] AS A " _
+          & "WHERE (A.[SALDO (MDP)]) > 0; "
+dbs.Close
+End Function
