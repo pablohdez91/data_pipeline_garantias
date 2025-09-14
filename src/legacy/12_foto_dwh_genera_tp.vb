@@ -51,13 +51,16 @@ RevisaRepetidos db_foto_revolventes_cohortes_preliminar, tbl_repetidos_tp, tbl_p
 
 'ACOV 201906 aquí se insertan los faltantes
 Marca_RegistrossRepetir db_foto_revolventes_cohortes_preliminar, tbl_repetidos_tp_concentrado, tbl_repetidos_tp, tbl_repetidos_tp_base, filtro_0, "BANCO_2"
+
 Bandera1 = Compara_Registros(db_foto_revolventes_cohortes_preliminar, db_foto_revolventes_cohortes_preliminar, tbl_repetidos_tp_concentrado, tbl_repetidos_tp_base, "BANCO_2", "BANCO")
 LimpiaNull db_foto_revolventes_cohortes_preliminar, "Temp_" & tbl_repetidos_tp_concentrado_depurado, tbl_repetidos_tp_concentrado, filtro_null_0
+
 If Bandera1 <> "Listo" Then
     BorraTabla db_foto_revolventes_cohortes_preliminar, tbl_repetidos_tp
     BorraTabla db_foto_revolventes_cohortes_preliminar, tbl_pfpm
     Exit Sub
 End If
+
 Marca_RegistrossRepetir_2 db_foto_revolventes_cohortes_preliminar, "Temp2_" & tbl_repetidos_tp_concentrado_depurado, "Temp_" & tbl_repetidos_tp_concentrado_depurado, tbl_repetidos_tp_base, filtro_1, "BANCO_3"
 Bandera2 = Compara_Registros(db_foto_revolventes_cohortes_preliminar, db_foto_revolventes_cohortes_preliminar, "Temp2_" & tbl_repetidos_tp_concentrado_depurado, tbl_repetidos_tp_base, "BANCO_3", "BANCO")
 LimpiaNull db_foto_revolventes_cohortes_preliminar, tbl_repetidos_tp_concentrado_depurado, "Temp2_" & tbl_repetidos_tp_concentrado_depurado, filtro_null_1
@@ -68,6 +71,7 @@ If Bandera2 <> "Listo" Then
     BorraTabla db_foto_revolventes_cohortes_preliminar, tbl_pfpm
     Exit Sub
 End If
+
 No_Registros_1 = Cuenta_Registros(db_foto_revolventes_cohortes_preliminar, tbl_repetidos_tp_concentrado_depurado, "BANCO")
 
     BorraTabla db_foto_revolventes_cohortes_preliminar, "Temp_" & tbl_repetidos_tp_concentrado_depurado
@@ -113,6 +117,7 @@ Function Marca_RegistrossRepetir(db_foto_revolventes_cohortes_preliminar, tbl_vf
           & "IN '" & db_foto_revolventes_cohortes_preliminar & "'; "
     dbs.Close
 End Function
+
 Function Marca_RegistrossRepetir_2(db_foto_revolventes_cohortes_preliminar, tbl_vf_pfpm, tbl_pfpm, TPsRepetidos, Filtro, CampoExtra)
     Set dbs = OpenDatabase(db_foto_revolventes_cohortes_preliminar)
     dbs.Execute "SELECT A.*, " _

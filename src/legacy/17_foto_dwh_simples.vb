@@ -99,12 +99,14 @@ Function Agrega_Campos_x_Taxo_NR(TablaTaxo, db_bases_simples, fecha_base)
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MRECUP_VIVOS]", "Double", "(IIF(FVTO+180>#" & fecha_base & "#,1,0)*[RECUPERADOS (MDP)])", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MGI_CAD]", "Double", "(IIF(FVTO+180<=#" & fecha_base & "#,1,0)*[MGI (MDP)])", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MGI_MALOS_CAD]", "Double", "(IIF(FVTO+180<=#" & fecha_base & "#,1,0)*[MGI (MDP)]*INCUMPLIDO)", 0
+
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MPAGADO_CAD]", "Double", "(IIF(FVTO+180<=#" & fecha_base & "#,1,0)*[MPAGADO (MDP)])", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MRECUP_CAD]", "Double", "(IIF(FVTO+180<=#" & fecha_base & "#,1,0)*[RECUPERADOS (MDP)])", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[SALDO_VIVOS]", "Double", "(IIF(FVTO+180>#" & fecha_base & "#,1,0)*[SALDO (MDP)])", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[SALDO_CADUCOS]", "Double", "(IIF(FVTO+180<=#" & fecha_base & "#,1,0)*[SALDO (MDP)])", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MGI_VIVOS^2]", "Double", "[MGI_VIVOS]*[MGI_VIVOS]", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[#VIVAS]", "Double", "IIF(FVTO+180>#" & fecha_base & "#,1,0)", 0 'ES LA MISMA QUE IND_VIVAS = #vivas
+    
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[MGI_INCMPL]", "Double", "[MGI (MDP)]*INCUMPLIDO", 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[Count]", "Double", 1, 0
     Campos_Extras_Bases_NR TablaTaxo, db_bases_simples, "[FECHA_PAGO1]", "Double", "IIF(FECHA_PAGO=0,NULL, cdate(Format(dateserial(Year(FECHA_PAGO),Month(FECHA_PAGO),'01'),'dd/mm/yyyy')))", 0

@@ -55,8 +55,10 @@ Sub BuscaMaxFechaApertura() '(BaseDestino, db_foto_revolventes_cohortes_prelimin
     Call Crea_Tabla_Agrega_Campos_Cruzada(dbs, "A.*", ", B.TIPO_PERSONA as TIPO_PERSONA ", "Temp_" & tbl_vf_foto_r, "VF_PFPM_" & Mes, tbl_vf_foto_r & "_VCohortes", "", "", " ON (A.NOMBRE=B.NOMBRE AND A.BANCO=B.BANCO AND A.AGRUPAMIENTO=B.AGRUPAMIENTO AND A.TAXONOMIA=B.TAXONOMIA)", "")
     Call Borrar_Tabla(dbs, "Temp_" & tbl_vf_foto_r)
     
-    dbs.Execute "SELECT TAXONOMIA, SUM([MGI (MDP)]) AS MGI_MDP, SUM([SALDO (MDP)]) AS SALDO_MDP, SUM([MPAGADO (MDP)]) AS MPAGADO_MDP, " _
-    & " SUM([RECUPERADOS (MDP)]) AS MRECUP_MDP, SUM([RESCATADOS (MDP)]) AS MRESCAT_MDP INTO VALIDA_Foto_R " _
+    dbs.Execute "SELECT TAXONOMIA, SUM([MGI (MDP)]) AS MGI_MDP, 
+    SUM([SALDO (MDP)]) AS SALDO_MDP, SUM([MPAGADO (MDP)]) AS MPAGADO_MDP, " _
+    & " SUM([RECUPERADOS (MDP)]) AS MRECUP_MDP, 
+    SUM([RESCATADOS (MDP)]) AS MRESCAT_MDP INTO VALIDA_Foto_R " _
     & " FROM VF_Foto_R_" & Mes & "_VCohortes GROUP BY TAXONOMIA"
        
     dbs.Close
@@ -64,14 +66,27 @@ Sub BuscaMaxFechaApertura() '(BaseDestino, db_foto_revolventes_cohortes_prelimin
     Set dbs = OpenDatabase(db_foto_simples_cohortes)
     
     
-    dbs.Execute "SELECT TAXONOMIA, SUM([MGI (MDP)]) AS MGI_MDP, SUM([SALDO (MDP)]) AS SALDO_MDP, SUM([MPAGADO (MDP)]) AS MPAGADO_MDP, " _
-    & " SUM([RECUPERADOS (MDP)]) AS MRECUP_MDP, SUM([RESCATADOS (MDP)]) AS MRESCAT_MDP INTO VALIDA_Foto_NR " _
+    dbs.Execute "SELECT TAXONOMIA, SUM([MGI (MDP)]) AS MGI_MDP, 
+    SUM([SALDO (MDP)]) AS SALDO_MDP, SUM([MPAGADO (MDP)]) AS MPAGADO_MDP, " _
+    & " SUM([RECUPERADOS (MDP)]) AS MRECUP_MDP, 
+    SUM([RESCATADOS (MDP)]) AS MRESCAT_MDP INTO VALIDA_Foto_NR " _
     & " FROM VF_Foto_NR_" & Mes & " GROUP BY TAXONOMIA"
 
     dbs.Close
 
 End Sub
 
+
+
+Function Crea_Tabla_Agrega_Campos_Cruzada(dbs, linea_1, Coma, TablaInicial_1, TablaInicial_2, TablaFinal, Campos_Extra, BaseOrigen, Filtro, Agrupado_por)
+    dbs.Execute "select " & linea_1 & Coma & " " _
+        & "" & Campos_Extra & " " _
+        & "into [" & TablaFinal & "] " _
+        & "from [" & TablaInicial_1 & "] as A left join [" & TablaInicial_2 & "] as B " _
+        & "" & BaseOrigen & " " _
+        & "" & Filtro & " " _
+        & "" & Agrupado_por & ";"
+End Function
 
 
 
