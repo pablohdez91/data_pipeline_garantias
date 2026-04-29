@@ -40,14 +40,14 @@ Sub Principal_ImportaBase()
 
     Call importar_hoja_excel(db_base_vigente_xl, db_base_vigente, tbl_temp)
     Call importar_catalogos(db_base_vigente, Mes, db_catalogos)
-    Call pegar_tc(db_base_vigente, Mes)
-    Call pegar_catalogos(db_base_vigente, Mes)
+    'Call pegar_tc(db_base_vigente, Mes)
+    'Call pegar_catalogos(db_base_vigente, Mes)
     Call pegar_catalogos_valida_saldo(db_base_vigente, Mes)
     Set dbs = OpenDatabase(db_base_vigente)
-        Call corrige_campos(dbs, "Saldos_" & Mes, "Taxonomia", "IIF((Agrupamiento_Id=655 AND Agrupamiento = 'Mis' and [Taxonomia]='GARANTIA MICROCREDITO'),'GARANTIA SECTORIAL',[Taxonomia])", "")
+        'Call corrige_campos(dbs, "Saldos_" & Mes, "Taxonomia", "IIF((Agrupamiento_Id=655 AND Agrupamiento = 'Mis' and [Taxonomia]='GARANTIA MICROCREDITO'),'GARANTIA SECTORIAL',[Taxonomia])", "")
         Call corrige_campos(dbs, "valida_saldos_" & Mes, "Taxonomia", "IIF((Agrupamiento_Id=655 AND Agrupamiento = 'Mis' and [Taxonomia]='GARANTIA MICROCREDITO'),'GARANTIA SECTORIAL',[Taxonomia])", "")
         Call valida_saldo(dbs, Mes)
-        Call valida_agrupamientos(dbs, Mes)
+        'Call valida_agrupamientos(dbs, Mes)
     dbs.Close
 End Sub
 
